@@ -19,3 +19,20 @@ We also provide a manager for the microservices, but it is still at an early sta
 The microservices are in a more mature state and each one can work alone. They do not depend on the manager to work but some advance features can be hard to perform. All microservices implement a management interface. It is used, for example, to change their configuration or to ask them to connect to other endpoints. Some of them can also send some metrics in periodical reports to a given endpoint.
 
 In the current state, the fact to split FIB and PIT is not worth regarding the increased complexity it implies so we will soon add a microservice that fuse Name Route, Backward Router and Packet Dispatcher but this does not mean they are useless (I don't have good example yet). They can still be used as base for new functions like off-path forwarding for Backward Router.
+
+# Steps to reproduce:
+
+- Install Docker CE 18.03 - Install specific version of Docker
+
+Start by listing the available versions in the repository:
+
+``apt-cache madison docker-ce | awk '{ print $3 }``
+
+Select the desired version and install:
+
+``VERSION_STRING=5:18.09.9~3-0~ubuntu-bionic
+sudo apt-get install docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING containerd.io docker-buildx-plugin docker-compose-plugin``
+
+- Download image ubuntu 18.04:
+
+``docker pull ubuntu:bionic``
