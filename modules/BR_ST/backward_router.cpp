@@ -174,8 +174,15 @@ void BackwardRouter::commandAddFace(const rapidjson::Document &document) {
             {"udp", UDP},
     };
 
+
+    std::stringstream ss1;
+    ss1 << "Face add process ------------";
+    logger::log(logger::INFO, ss1.str());
+
     if (document.HasMember("layer") && document.HasMember("address") && document.HasMember("port")
         && document["layer"].IsString() && document["address"].IsString() && document["port"].IsUint()) {
+
+
         auto it = LAYERS.find(document["layer"].GetString());
         if (it != LAYERS.end()) {
             std::shared_ptr<Face> face;
@@ -193,6 +200,9 @@ void BackwardRouter::commandAddFace(const rapidjson::Document &document) {
                        boost::bind(&BackwardRouter::onFaceError, this, _1));
             std::stringstream ss;
             ss << R"({"name":")" << _name << R"(", "type":"reply", "id":)" << document["id"].GetUint() << R"(, "action":"add_face", "face_id":)" << face->getFaceId() << "}";
+
+            logger::log(logger::INFO, ss.str());         
+
             _command_socket.send_to(boost::asio::buffer(ss.str()), _remote_command_endpoint);
         }
     }

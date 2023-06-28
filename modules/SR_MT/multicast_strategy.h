@@ -6,7 +6,7 @@ class MulticastStrategy : public Strategy {
 private:
 
 public:
-    MulticastStrategy() = default;
+    MulticastStrategy();
 
     ~MulticastStrategy() override = default;
 

@@ -48,8 +48,6 @@ public:
 
     virtual std::string getUnderlyingProtocol() const = 0;
 
-    virtual std::string getUnderlyingEndpoint() const = 0;
-
     virtual void open(const InterestCallback &interest_callback, const DataCallback &data_callback, const ErrorCallback &error_callback) = 0;
 
     virtual void close() = 0;

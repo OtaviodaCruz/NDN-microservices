@@ -12,8 +12,7 @@
 
 class TcpFace : public Face, public std::enable_shared_from_this<TcpFace> {
 public:
-    static const size_t NDN_MAX_PACKET_SIZE = 8800;
-    static const size_t BUFFER_SIZE = 1 << 15; // 16k
+    static const size_t BUFFER_SIZE = 1 << 14;
 
 private:
     bool _skip_connect;
@@ -22,10 +21,9 @@ private:
     boost::asio::ip::tcp::socket _socket;
     boost::asio::strand _strand;
     char _buffer[BUFFER_SIZE];
-    size_t _buffer_size = 0;
     std::string _stream;
     bool _queue_in_use = false;
-    std::deque<std::shared_ptr<const ndn::Buffer>> _queue;
+    std::deque<std::string> _queue;
 
     boost::asio::deadline_timer _timer;
 
@@ -38,13 +36,13 @@ public:
     // specific constructor for MasterFace, not recommended to use it yourself
     explicit TcpFace(boost::asio::ip::tcp::socket &&socket);
 
-    ~TcpFace() override = default;
+    ~TcpFace();
 
     std::string getUnderlyingProtocol() const override;
 
-    std::string getUnderlyingEndpoint() const override;
-
-    void open(const InterestCallback &interest_callback, const DataCallback &data_callback, const ErrorCallback &error_callback) override;
+    void open(const InterestCallback &interest_callback,
+              const DataCallback &data_callback,
+              const ErrorCallback &error_callback) override;
 
     void close() override;
 
@@ -67,7 +65,7 @@ private:
 
     void readHandler(const boost::system::error_code &err, size_t bytes_transferred);
 
-    void sendImpl(std::shared_ptr<const ndn::Buffer> &buffer);
+    void sendImpl(const std::string &message);
 
     void write();
 

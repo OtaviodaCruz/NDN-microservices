@@ -2,7 +2,6 @@
 
 #include <ndn-cxx/interest.hpp>
 #include <ndn-cxx/data.hpp>
-#include <ndn-cxx/security/key-chain.hpp>
 
 #include <boost/asio.hpp>
 
@@ -18,7 +17,7 @@
 #include "network/master_face.h"
 #include "fib.h"
 
-class NameRouter : public Module {
+class NamedRouter : public Module {
     const std::string _name;
 
     Fib _fib;
@@ -27,12 +26,10 @@ class NameRouter : public Module {
     boost::asio::ip::udp::socket _command_socket;
     boost::asio::ip::udp::endpoint _remote_command_endpoint;
 
-    ndn::KeyChain _keychain;
     size_t _request_id = 1;
     std::map<size_t, std::function<void(bool)>> _requests;
     std::map<size_t, std::shared_ptr<boost::asio::deadline_timer>> _request_timers;
     boost::asio::ip::udp::endpoint _manager_endpoint;
-    bool _check_prefix = false;
 
     std::unordered_map<size_t, std::shared_ptr<Face>> _egress_faces;
     std::shared_ptr<MasterFace> _tcp_consumer_master_face;
@@ -41,9 +38,9 @@ class NameRouter : public Module {
     std::shared_ptr<MasterFace> _udp_producer_master_face;
 
 public:
-    NameRouter(const std::string &name, uint16_t local_consumer_port, uint16_t local_producer_port, uint16_t local_command_port);
+    NamedRouter(const std::string &name, uint16_t local_consumer_port, uint16_t local_producer_port, uint16_t local_command_port);
 
-    ~NameRouter() override = default;
+    ~NamedRouter() override = default;
 
     void run() override;
 
@@ -77,9 +74,9 @@ public:
 
     void commandDelFace(const rapidjson::Document &document);
 
-    void commandAddRoutes(const rapidjson::Document &document);
+    void commandAddRoute(const rapidjson::Document &document);
 
-    void commandDelRoutes(const rapidjson::Document &document);
+    void commandDelRoute(const rapidjson::Document &document);
 
     void commandList(const rapidjson::Document &document);
 };

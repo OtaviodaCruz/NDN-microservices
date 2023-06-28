@@ -1,17 +1,20 @@
 #pragma once
 
+#include <ndn-cxx/interest.hpp>
+#include <ndn-cxx/data.hpp>
+
 #include <boost/asio.hpp>
+//#include <boost/function.hpp>
 
 #include <functional>
 
 #include <memory>
 #include <string>
 
-#include "ndn_packet.h"
-
 class Face {
 public:
-    using Callback = std::function<void(const NdnPacket&)>;
+    using InterestCallback = std::function<void(const std::shared_ptr<Face>&, const ndn::Interest&)>;
+    using DataCallback = std::function<void(const std::shared_ptr<Face>&, const ndn::Data&)>;
     using ErrorCallback = std::function<void(const std::shared_ptr<Face>&)>;
 
 private:
@@ -24,7 +27,8 @@ protected:
 
     boost::asio::io_service &_ios;
 
-    Callback _callback;
+    InterestCallback _interest_callback;
+    DataCallback _data_callback;
     ErrorCallback _error_callback;
 
 public:
@@ -46,9 +50,13 @@ public:
 
     virtual std::string getUnderlyingEndpoint() const = 0;
 
-    virtual void open(const Callback &callback, const ErrorCallback &error_callback) = 0;
+    virtual void open(const InterestCallback &interest_callback, const DataCallback &data_callback, const ErrorCallback &error_callback) = 0;
 
     virtual void close() = 0;
 
-    virtual void send(const NdnPacket &packet) = 0;
+    virtual void send(const std::string &message) = 0;
+
+    virtual void send(const ndn::Interest &interest) = 0;
+
+    virtual void send(const ndn::Data &data) = 0;
 };

@@ -39,7 +39,7 @@ enum PrettyFormatOptions {
 
 //! Writer with indentation and spacing.
 /*!
-    \tparam OutputStream Type of output os.
+    \tparam OutputStream Type of ouptut os.
     \tparam SourceEncoding Encoding of source string.
     \tparam TargetEncoding Encoding of output stream.
     \tparam StackAllocator Type of allocator for allocating memory of stack.
@@ -47,7 +47,7 @@ enum PrettyFormatOptions {
 template<typename OutputStream, typename SourceEncoding = UTF8<>, typename TargetEncoding = UTF8<>, typename StackAllocator = CrtAllocator, unsigned writeFlags = kWriteDefaultFlags>
 class PrettyWriter : public Writer<OutputStream, SourceEncoding, TargetEncoding, StackAllocator, writeFlags> {
 public:
-    typedef Writer<OutputStream, SourceEncoding, TargetEncoding, StackAllocator, writeFlags> Base;
+    typedef Writer<OutputStream, SourceEncoding, TargetEncoding, StackAllocator> Base;
     typedef typename Base::Ch Ch;
 
     //! Constructor
@@ -136,10 +136,8 @@ public:
 	
     bool EndObject(SizeType memberCount = 0) {
         (void)memberCount;
-        RAPIDJSON_ASSERT(Base::level_stack_.GetSize() >= sizeof(typename Base::Level)); // not inside an Object
-        RAPIDJSON_ASSERT(!Base::level_stack_.template Top<typename Base::Level>()->inArray); // currently inside an Array, not Object
-        RAPIDJSON_ASSERT(0 == Base::level_stack_.template Top<typename Base::Level>()->valueCount % 2); // Object has a Key without a Value
-       
+        RAPIDJSON_ASSERT(Base::level_stack_.GetSize() >= sizeof(typename Base::Level));
+        RAPIDJSON_ASSERT(!Base::level_stack_.template Top<typename Base::Level>()->inArray);
         bool empty = Base::level_stack_.template Pop<typename Base::Level>(1)->valueCount == 0;
 
         if (!empty) {
@@ -150,7 +148,7 @@ public:
         (void)ret;
         RAPIDJSON_ASSERT(ret == true);
         if (Base::level_stack_.Empty()) // end of json text
-            Base::Flush();
+            Base::os_->Flush();
         return true;
     }
 
@@ -174,7 +172,7 @@ public:
         (void)ret;
         RAPIDJSON_ASSERT(ret == true);
         if (Base::level_stack_.Empty()) // end of json text
-            Base::Flush();
+            Base::os_->Flush();
         return true;
     }
 

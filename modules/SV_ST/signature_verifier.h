@@ -16,51 +16,48 @@
 #include <map>
 #include <set>
 
-#include "rapidjson/document.h"
-
-#include "module.h"
 #include "network/master_face.h"
 #include "network/face.h"
-#include "rapidjson/document.h"
 
-class SignatureVerifier : public Module {
+class SignatureVerifier {
 private:
-    const std::string _name;
+    boost::asio::io_service &_ios;
 
-    std::vector<std::shared_ptr<Face>> _egress_faces;
-    std::shared_ptr<MasterFace> _tcp_ingress_master_face;
-    std::shared_ptr<MasterFace> _udp_ingress_master_face;
+    std::shared_ptr<Face> _output_face;
 
-    char _command_buffer[65536];
+    std::shared_ptr<MasterFace> _input_master_face;
+    std::shared_ptr<Face> _input_face;
+
     boost::asio::ip::udp::socket _command_socket;
-    boost::asio::ip::udp::endpoint _remote_command_endpoint;
-    boost::asio::ip::udp::endpoint _manager_endpoint;
+    char _command_buffer[65536];
+    boost::asio::ip::udp::endpoint _remote_endpoint;
 
-    bool _report_enable = false;
-    boost::asio::deadline_timer _report_timer;
-    boost::posix_time::milliseconds _delay_between_report;
+    std::map<ndn::Name, std::unique_ptr<EVP_PKEY>> _pkeys;
 
     bool _drop = false;
     bool _no_key_drop = false;
-    bool _unsigned_drop = false;
     std::set<std::string> _invalid_signature_packet_names;
-    std::map<ndn::Name, EVP_PKEY*> _pkeys;
+    boost::asio::ip::udp::endpoint _report_endpoint;
+    std::string _report_name;
+    boost::asio::deadline_timer _report_timer;
+    bool _report_enable = false;
+    boost::posix_time::milliseconds _delay_between_report;
 
 public:
-    SignatureVerifier(const std::string &name, uint16_t local_port, uint16_t local_command_port);
+    SignatureVerifier(boost::asio::io_service &ios, uint16_t local_port, const std::string &remote_address, uint16_t remote_port);
 
-    ~SignatureVerifier() override = default;
+    ~SignatureVerifier();
 
-    void run() override;
+    void start();
 
 private:
-    void onIngressInterest(const std::shared_ptr<Face> &face, const ndn::Interest &interest);
+    void onInputInterest(const std::shared_ptr<Face> &face, const ndn::Interest &interest);
 
-    void onIngressData(const std::shared_ptr<Face> &face, const ndn::Data &data);
+    void onInputData(const std::shared_ptr<Face> &face, const ndn::Data &data);
 
-    void onEgressInterest(const std::shared_ptr<Face> &face, const ndn::Interest &interest);
+    void onOutputInterest(const std::shared_ptr<Face> &face, const ndn::Interest &interest);
 
-    void onEgressData(const std::shared_ptr<Face> &face, const ndn::Data &data);
+    void onOutputData(const std::shared_ptr<Face> &face, const ndn::Data &data);
 
     void onMasterFaceNotification(const std::shared_ptr<MasterFace> &master_face, const std::shared_ptr<Face> &face);
 
@@ -72,19 +69,7 @@ private:
 
     void commandReadHandler(const boost::system::error_code &err, size_t bytes_transferred);
 
-    void commandEditConfig(const rapidjson::Document &document);
-
-    void commandAddFace(const rapidjson::Document &document);
-
-    void commandDelFace(const rapidjson::Document &document);
-
-    void commandAddKeys(const rapidjson::Document &document);
-
-    void commandDelKeys(const rapidjson::Document &document);
-
-    void commandList(const rapidjson::Document &document);
-
     void commandReport(const boost::system::error_code &err);
 
-    int verify(const unsigned char* msg, size_t mlen, const unsigned char* sig, size_t slen, EVP_PKEY* pkey);
+    void refreshPKeys();
 };

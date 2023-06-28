@@ -16,12 +16,6 @@ std::string UdpMasterFace::UdpSubFace::getUnderlyingProtocol() const {
     return "UDP";
 }
 
-std::string UdpMasterFace::UdpSubFace::getUnderlyingEndpoint() const {
-    std::stringstream ss;
-    ss << _endpoint;
-    return ss.str();
-}
-
 const boost::asio::ip::udp::endpoint& UdpMasterFace::UdpSubFace::getEndpoint() {
     return _endpoint;
 }
@@ -60,10 +54,14 @@ void UdpMasterFace::UdpSubFace::proceedPacket(const char *buffer, size_t size) {
     try {
         switch (buffer[0]) {
             case 0x05:
-                _interest_callback(shared_from_this(), ndn::Interest(ndn::Block((uint8_t *) buffer, size)));
+                if (_interest_callback) {
+                    _interest_callback(shared_from_this(), ndn::Interest(ndn::Block((uint8_t *) buffer, size)));
+                }
                 break;
             case 0x06:
-                _data_callback(shared_from_this(), ndn::Data(ndn::Block((uint8_t *) buffer, size)));
+                if (_data_callback) {
+                    _data_callback(shared_from_this(), ndn::Data(ndn::Block((uint8_t *) buffer, size)));
+                }
                 break;
             default:
                 break;
@@ -131,14 +129,16 @@ void UdpMasterFace::sendToAllFaces(const std::string &message) {
 }
 
 void UdpMasterFace::sendToAllFaces(const ndn::Interest &interest) {
+    std::string message((const char *)interest.wireEncode().wire(), interest.wireEncode().size());
     for(const auto &face : _faces) {
-        face.second->send(interest);
+        face.second->send(message);
     }
 }
 
 void UdpMasterFace::sendToAllFaces(const ndn::Data &data) {
+    std::string message((const char *)data.wireEncode().wire(), data.wireEncode().size());
     for(const auto &face : _faces) {
-        face.second->send(data);
+        face.second->send(message);
     }
 }
 

@@ -6,8 +6,6 @@
 #include <mutex>
 #include <vector>
 
-#include <tbb/spin_mutex.h>
-
 namespace logger {
     enum Level {
         INFO,
@@ -16,7 +14,7 @@ namespace logger {
     };
 
     namespace {
-        tbb::spin_mutex mutex;
+        std::mutex mutex;
         std::ofstream file;
         bool is_tee = false;
         Level level = INFO;

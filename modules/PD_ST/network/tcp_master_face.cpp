@@ -43,14 +43,16 @@ void TcpMasterFace::sendToAllFaces(const std::string &message) {
 }
 
 void TcpMasterFace::sendToAllFaces(const ndn::Interest &interest) {
+    std::string message((const char*)interest.wireEncode().wire(), interest.wireEncode().size());
     for(const auto &face : _faces) {
-        face->send(interest);
+        face->send(message);
     }
 }
 
 void TcpMasterFace::sendToAllFaces(const ndn::Data &data) {
+    std::string message((const char*)data.wireEncode().wire(), data.wireEncode().size());
     for(const auto &face : _faces) {
-        face->send(data);
+        face->send(message);
     }
 }
 
